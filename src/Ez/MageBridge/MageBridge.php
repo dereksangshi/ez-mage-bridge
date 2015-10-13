@@ -21,33 +21,26 @@ class MageBridge
     protected $mageInfo = null;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param string $mageRootDir OPTIONAL The root directory for Magento.
-     * @param string $appCode OPTIONAL Magento application code.
-     * @param string $appType OPTIONAL Magento application type.
+     * @param MageEnv $mageEnv
      */
-    public function __construct($mageRootDir = null, $appCode = null, $appType = null)
+    public function __construct(MageEnv $mageEnv)
     {
-        if (isset($mageRootDir)) {
-            $this->getMageEnv()->setMageRootDir($mageRootDir);
-        }
-        if (isset($appCode)) {
-            $this->getMageEnv()->setAppCode($appCode);
-        }
-        if (isset($appType)) {
-            $this->getMageEnv()->setAppType($appType);
-        }
+        $this->mageEnv = $mageEnv;
+        $this->initMage();
     }
 
     /**
-     * @param MageEnv $mageEnv
+     * Initialize Magento application.
+     *
      * @return $this
      */
-    public function setMageEnv(MageEnv $mageEnv)
+    protected function initMage()
     {
-        $this->mageEnv = $mageEnv;
-        return $this;
+        // Only initialize the Magento application once when MageBridge is instantiated.
+        require_once $this->getMageEnv()->getMageRootDir().DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'Mage.php';
+        \Mage::run($this->getMageEnv()->getAppCode(), $this->getMageEnv()->getAppType());
     }
 
     /**
@@ -57,22 +50,7 @@ class MageBridge
      */
     public function getMageEnv()
     {
-        if (!isset($this->mageEnv)) {
-            $this->mageEnv = new MageEnv();
-        }
         return $this->mageEnv;
-    }
-
-    /**
-     * Set MageInfo.
-     *
-     * @param MageInfo $mageInfo
-     * @return $this
-     */
-    public function setMageInfo(MageInfo $mageInfo)
-    {
-        $this->mageInfo = $mageInfo;
-        return $this;
     }
 
     /**

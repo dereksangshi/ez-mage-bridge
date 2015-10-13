@@ -11,11 +11,6 @@ namespace Ez\MageBridge;
 class MageInfo
 {
     /**
-     * @var MageEnv
-     */
-    protected $mageEnv = null;
-
-    /**
      * The Magento application.
      *
      * @var \Mage_Core_Model_App
@@ -33,67 +28,6 @@ class MageInfo
      * @var null
      */
     protected $extensionNames = null;
-
-    /**
-     * Constructor.
-     *
-     * @param MageEnv $mageEnv
-     */
-    public function __construct(MageEnv $mageEnv)
-    {
-        $this->mageEnv = $mageEnv;
-        $this->initMageApp();
-    }
-
-    /**
-     * Initialize Magento application.
-     *
-     * @return $this
-     */
-    protected function initMageApp()
-    {
-        // Only initialize the Magento application once.
-        if (!isset($this->app)) {
-            require_once $this->getMageEnv()->getMageRootDir().DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'Mage.php';
-            $this->app = \Mage::app($this->getMageEnv()->getAppCode(), $this->getMageEnv()->getAppType());
-        }
-        return $this;
-    }
-
-    /**
-     * Set Magento environment.
-     *
-     * @param MageEnv $mageEnv
-     * @return $this
-     */
-    public function setMageEnv(MageEnv $mageEnv)
-    {
-        $this->mageEnv = $mageEnv;
-        return $this;
-    }
-
-    /**
-     * Get Magento environment.
-     *
-     * @return MageEnv
-     */
-    public function getMageEnv()
-    {
-        if (!isset($this->mageEnv)) {
-            $this->mageEnv = new MageEnv();
-        }
-        return $this->mageEnv;
-    }
-
-    /**
-     * Get the Magento application.
-     *
-     * @return \Mage_Core_Model_App
-     */
-    public function getMageApp()
-    {
-        return $this->$mageApp;
-    }
 
     /**
      * Get Magento module configuration as array.
