@@ -2,6 +2,10 @@
 
 namespace Ez\MageBridge;
 
+use Ez\MageBridge\Exception\ResourceNotExistException;
+use Ez\MageBridge\Component\ComponentInterface;
+use Ez\DataStructure\KeyValueDataStorage\JsonTagsValueDataStorage;
+
 /**
  * Class MageBridge
  *
@@ -11,58 +15,113 @@ namespace Ez\MageBridge;
 class MageBridge
 {
     /**
-     * @var MageEnv
+     * @var Config
      */
-    protected $mageEnv = null;
+    protected $config = null;
 
     /**
-     * @var MageInfo
+     * @var JsonTagsValueDataStorage
      */
-    protected $mageInfo = null;
+    protected $dataStorage = null;
 
     /**
-     * Constructor.
-     *
-     * @param MageEnv $mageEnv
+     * @var ComponentContainer
      */
-    public function __construct(MageEnv $mageEnv)
+    protected $componentContainer = null;
+
+    /**
+     * @param Config $config
+     */
+    public function __construct(Config $config = null)
     {
-        $this->mageEnv = $mageEnv;
-        $this->initMage();
+        if (isset($config)) {
+            $this->config = $config;
+        }
     }
 
     /**
-     * Initialize Magento application.
+     * Set the configuration.
+     *
+     * @param Config $config
+     * @return $this
+     */
+    public function setConfig(Config $config)
+    {
+        $this->config = $config;
+        return $this;
+    }
+
+    /**
+     * Get the configuration.
+     *
+     * @return Config
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Get data storage.
+     *
+     * @return JsonTagsValueDataStorage
+     */
+    public function getDataStorage()
+    {
+        if (!isset($this->dataStorage)) {
+            $this->dataStorage = new JsonTagsValueDataStorage();
+        }
+        return $this->dataStorage;
+    }
+
+    /**
+     * Get component container.
+     *
+     * @return ComponentContainer
+     */
+    public function getComponentContainer()
+    {
+        if (!isset($this->componentContainer)) {
+            $this->componentContainer = new ComponentContainer($this->getConfig(), $this->getDataStorage());
+        }
+        return $this->componentContainer;
+    }
+
+    /**
+     * Include Magento.
      *
      * @return $this
      */
-    protected function initMage()
+    public function includeMage()
     {
         // Only initialize the Magento application once when MageBridge is instantiated.
-        require_once $this->getMageEnv()->getMageRootDir().DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'Mage.php';
-        \Mage::run($this->getMageEnv()->getAppCode(), $this->getMageEnv()->getAppType());
+        require_once $this->getConfig()->get('general/mage_root_dir').DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'Mage.php';
+        \Mage::run($this->getConfig()->get('general/mage_run_code'), $this->getConfig()->get('general/mage_run_type'));
+        return $this;
     }
 
     /**
-     * Get MageEnv.
+     * Get the component.
      *
-     * @return MageEnv
+     * @param string $componentName Name of the component.
+     * @return ComponentInterface
      */
-    public function getMageEnv()
+    protected function getComponent($componentName)
     {
-        return $this->mageEnv;
+        return $this->getComponentContainer()->get($componentName);
     }
 
     /**
-     * Get MageInfo.
+     * Magically get component (format: _componentName_()).
      *
-     * @return MageInfo
+     * @param string $method The name of the method called.
+     * @param array $args Arguments passed to the method.
+     * @return ComponentInterface|null
      */
-    public function getMageInfo()
+    public function __call($method, $args)
     {
-        if (!isset($this->mageInfo)) {
-            $this->mageInfo = new MageInfo($this->getMageEnv());
+        if (preg_match('/^_([a-zA-Z1-9]+)_$/', $method, $matches)) {
+            return $this->getComponent($matches[1]);
         }
-        return $this->mageInfo;
     }
 }
