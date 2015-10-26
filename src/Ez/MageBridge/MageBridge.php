@@ -96,7 +96,7 @@ class MageBridge
     {
         // Only initialize the Magento application once when MageBridge is instantiated.
         require_once $this->getConfig()->get('general/mage_root_dir').DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'Mage.php';
-        \Mage::run($this->getConfig()->get('general/mage_run_code'), $this->getConfig()->get('general/mage_run_type'));
+        \Mage::app($this->getConfig()->get('general/mage_run_code'), $this->getConfig()->get('general/mage_run_type'));
         return $this;
     }
 
